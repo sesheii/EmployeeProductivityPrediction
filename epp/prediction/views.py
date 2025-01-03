@@ -1,15 +1,17 @@
 from django.shortcuts import render
-from .ml_model import predict_productivity
 
-def predict(request):
-    result = None
-    if request.method == 'POST':
-        # Get data from the form
-        data = {
-            'experience': request.POST.get('experience'),
-            'hours_worked': request.POST.get('hours_worked'),
-        }
-        # Use the ML model to predict productivity
-        result = predict_productivity(data)
 
-    return render(request, 'predict.html', {'result': result})
+def prediction_view(request):
+    # Example list of features
+    features = ["experience", "hours_worked", "projects_completed", "overtime_hours"]
+
+    result = None  # Default result
+
+    if request.method == "POST":
+        # Process submitted form data
+        form_data = {feature: request.POST.get(feature) for feature in features}
+        # Call your prediction model with `form_data`
+        # For example: result = predict(form_data)
+        result = f"Predicted Value (Example): {form_data}"  # Example placeholder
+
+    return render(request, "predict.html", {"features": features, "result": result})

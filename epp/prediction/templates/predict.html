@@ -9,22 +9,21 @@
         <h1>Employee Productivity Prediction</h1>
         <form method="POST">
             {% csrf_token %}
-            <label for="experience">Years of Experience:</label>
+
+            <!-- Loop through features to dynamically create form fields -->
+            {% for feature in features %}
+            <label for="{{ feature }}">{{ feature|title }}:</label>
             <input
-                type="number"
-                name="experience"
-                id="experience"
+                type="text"
+                name="{{ feature }}"
+                id="{{ feature }}"
                 required
             /><br />
-            <label for="hours_worked">Hours Worked per Day:</label>
-            <input
-                type="number"
-                name="hours_worked"
-                id="hours_worked"
-                required
-            /><br />
+            {% endfor %}
+
             <button type="submit">Predict</button>
         </form>
+
         {% if result %}
         <h2>Prediction Result: {{ result }}</h2>
         {% endif %}
