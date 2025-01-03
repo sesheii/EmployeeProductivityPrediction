@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Employee Productivity Prediction</title>
+    </head>
+    <body>
+        <h1>Employee Productivity Prediction</h1>
+        <form method="POST">
+            {% csrf_token %}
+            <label for="experience">Years of Experience:</label>
+            <input
+                type="number"
+                name="experience"
+                id="experience"
+                required
+            /><br />
+            <label for="hours_worked">Hours Worked per Day:</label>
+            <input
+                type="number"
+                name="hours_worked"
+                id="hours_worked"
+                required
+            /><br />
+            <button type="submit">Predict</button>
+        </form>
+        {% if result %}
+        <h2>Prediction Result: {{ result }}</h2>
+        {% endif %}
+    </body>
+</html>
