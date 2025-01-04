@@ -1,36 +1,50 @@
 from django.shortcuts import render
 from django import forms
 
+
+def process_form_data(form_data):
+    results = {}
+    for field_name, value in form_data.items():
+        if field_name == "username":
+            results[field_name] = f"Hello, {value.upper()}!"
+        elif field_name == "age":
+            results[field_name] = f"You are {int(value) + 10} years old in the future."
+        elif field_name == "birth_date":
+            results[field_name] = f"You were born on {value.strftime('%A, %B %d, %Y')}."
+        elif field_name == "shit date":
+            results[field_name] = f"The selected date is {value.isoformat()}."
+        else:
+            results[field_name] = f"Value: {value}"
+    return results
+
+
 def dynamic_form_view(request):
-    # Define fields and their handling logic
     fields_config = [
         {
-            "name": "username",
-            "type": "text",
-            "label": "Username",
-            "required": True,
-            "handler": lambda value: f"Hello, {value.upper()}!"  # Example: Greet the user
-        },
-        {
-            "name": "age",
+            "name": "MarriedID",
             "type": "number",
-            "label": "Age",
-            "required": False,
-            "handler": lambda value: f"You are {value + 10} years old in the future."  # Add 10 to the age
+            "label": "MarriedID",
+            "required": True,
+            "choices": [0, 1],
         },
         {
-            "name": "birth_date",
-            "type": "date",
-            "label": "Birth Date",
+            "name": "Salary",
+            "type": "number",
+            "label": "Salary",
             "required": True,
-            "handler": lambda value: f"You were born on {value.strftime('%A, %B %d, %Y')}."  # Format date
+            "choices": [49999, 75000, 99999],
+        },
+        {
+            "name": "PerformanceScore",
+            "type": "text",
+            "label": "PerformanceScore",
+            "required": True,
         },
         {
             "name": "shit date",
             "type": "date",
             "label": "Date",
             "required": True,
-            "handler": lambda value: f"Hello, {value}!"  # Example: Greet the user
         },
     ]
 
@@ -42,8 +56,18 @@ def dynamic_form_view(request):
                 field_type = field["type"]
                 label = field["label"]
                 required = field["required"]
+                choices = field.get("choices", None)
 
-                if field_type == "text":
+                if choices:  # If dropdown suggestions are specified
+                    self.fields[field_name] = forms.CharField(
+                        label=label,
+                        required=required,
+                        widget=forms.TextInput(attrs={
+                            "list": f"options-{field_name}",  # Link to the datalist element
+                            "choices": choices  # Pass the choices to the widget for use in the template
+                        })
+                    )
+                elif field_type == "text":
                     self.fields[field_name] = forms.CharField(label=label, required=required)
                 elif field_type == "number":
                     self.fields[field_name] = forms.IntegerField(label=label, required=required)
@@ -51,7 +75,7 @@ def dynamic_form_view(request):
                     self.fields[field_name] = forms.DateField(
                         label=label,
                         required=required,
-                        widget=forms.DateInput(attrs={"type": "date"})  # Enable browser's date picker
+                        widget=forms.DateInput(attrs={"type": "date"})
                     )
 
     response_message = None
@@ -59,15 +83,8 @@ def dynamic_form_view(request):
     if request.method == "POST":
         form = DynamicForm(fields_config, request.POST)
         if form.is_valid():
-            # Handle each field individually
-            results = {}
-            for field in fields_config:
-                field_name = field["name"]
-                handler = field["handler"]
-                field_value = form.cleaned_data[field_name]
-                results[field_name] = handler(field_value)  # Apply the handler function
-
-            # Generate a response message
+            form_data = {field: form.cleaned_data[field] for field in form.cleaned_data}
+            results = process_form_data(form_data)
             response_message = " ".join(results.values())
     else:
         form = DynamicForm(fields_config)

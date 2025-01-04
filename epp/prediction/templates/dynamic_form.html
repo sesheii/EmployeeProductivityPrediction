@@ -26,7 +26,16 @@
                             >
                                 {% csrf_token %} {% for field in form %}
                                 <div class="mb-3">
-                                    {{ field.label_tag }} {{ field }} {% if field.errors %}
+                                    {{ field.label_tag }} {{ field }} {% if field.field.widget.attrs.list %}
+                                    <!-- Render the datalist for fields with suggestions -->
+                                    <datalist
+                                        id="{{ field.field.widget.attrs.list }}"
+                                    >
+                                        {% for choice in field.field.widget.attrs.choices %}
+                                        <option value="{{ choice }}"></option>
+                                        {% endfor %}
+                                    </datalist>
+                                    {% endif %} {% if field.errors %}
                                     <div class="text-danger small mt-1">
                                         {{ field.errors.as_text }}
                                     </div>
