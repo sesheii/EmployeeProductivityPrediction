@@ -7,16 +7,23 @@
     </head>
     <body>
         <h1>Employee Productivity Prediction</h1>
+
+        <!-- Display error message if any -->
+        {% if error_message %}
+        <div style="color: red; font-weight: bold">{{ error_message }}</div>
+        {% endif %}
+
         <form method="POST">
             {% csrf_token %}
 
-            <!-- Loop through features to dynamically create form fields -->
+            <!-- Dynamically generate input fields for each feature -->
             {% for feature in features %}
             <label for="{{ feature }}">{{ feature|title }}:</label>
             <input
                 type="text"
                 name="{{ feature }}"
                 id="{{ feature }}"
+                value="{{ input_data.feature }}"
                 required
             /><br />
             {% endfor %}
@@ -24,8 +31,14 @@
             <button type="submit">Predict</button>
         </form>
 
-        {% if result %}
-        <h2>Prediction Result: {{ result }}</h2>
+        {% if predictions %}
+        <h2>Prediction Results:</h2>
+        <ul>
+            <!-- Display predictions for each model -->
+            {% for model, prediction in predictions.items %}
+            <li>{{ model }}: {{ prediction }}</li>
+            {% endfor %}
+        </ul>
         {% endif %}
     </body>
 </html>
