@@ -5,40 +5,64 @@ import os
 from datetime import date
 
 
-def calculate_age(dob):
-    if not isinstance(dob, date):
-        raise ValueError("DOB must be a datetime.date object")
-
-    today = date.today()
-
-    if dob > today:
-        raise ValueError("Date of Birth cannot be in the future")
-
-    age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
-    return age
-
-
 def unique_df(df, column):
     return sorted([i for i in df[f"{column}"].unique()])
 
 original_dataset = pd.read_csv(os.path.join("data/HRDataset_v14.csv"))
 
+
+def calculate_age(dob, reference_date):
+    if not isinstance(dob, date) or not isinstance(reference_date, date):
+        raise ValueError("Both DOB and reference_date must be datetime.date objects")
+
+    if dob > reference_date:
+        raise ValueError("Date of Birth cannot be after the reference date")
+
+    # Calculate age based on the reference date
+    age = reference_date.year - dob.year - ((reference_date.month, reference_date.day) < (dob.month, dob.day))
+    return age
+
+
 def process_form_data(form_data):
     results = {}
-    for field_name, value in form_data.items():
-        # print(f"Field: {field_name}, Value: {value}, Type: {type(value)}")  # Debugging
+    dob = None
+    last_review_date = None
 
+    for field_name, value in form_data.items():
         if field_name == "DOB":
-            if value:
-                try:
-                    age = calculate_age(value)
-                    results["Age"] = str(age)
-                except ValueError as e:
-                    results["Age"] = str(e)  # Return the error message
+            dob = value
+        elif field_name == "LastPerformanceReview_Date":
+            last_review_date = value
+
+    if dob and last_review_date:
+        try:
+            age = calculate_age(dob, last_review_date)
+            results["Age"] = f"{age}"
+        except ValueError as e:
+            results["Age"] = str(e)
+    else:
+        results["Age"] = "Both DOB and LastPerformanceReview_Date are required for age calculation"
+
+    for field_name, value in form_data.items():
+        if field_name == "Married":
+            if value == "Yes":
+                results["MarriedID"] = 1
             else:
-                results["Age"] = "Invalid or missing Date of Birth"
-        elif field_name == "haha":
-            results[field_name] = f"val: {value}"
+                results["MarriedID"] = 0
+
+        if field_name in ["Salary", "EmpSatisfaction", "SpecialProjectsCount", "DaysLateLast30", "Absences"]:
+            results[field_name] = int(value)
+
+        if field_name == "Salary":
+            results["Salary"] = int(value)
+
+        if field_name == "Salary":
+            results["Salary"] = int(value)
+
+
+        elif field_name not in ["DOB", "LastPerformanceReview_Date"]:
+            results[field_name] = f"{value}"
+
     return results
 
 
@@ -48,6 +72,13 @@ def dynamic_form_view(request):
             "name": "DOB",
             "type": "date",
             "label": "DateOfBirth",
+            "required": True,
+            "choices": [],
+        },
+        {
+            "name": "LastPerformanceReview_Date",
+            "type": "date",
+            "label": "LastPerformanceReview_Date",
             "required": True,
             "choices": [],
         },
@@ -65,13 +96,13 @@ def dynamic_form_view(request):
             "required": True,
             "choices": unique_df(original_dataset, "Salary"),
         },
-        {
-            "name": "PerformanceScore",
-            "type": "category",
-            "label": "PerformanceScore",
-            "required": True,
-            "choices": unique_df(original_dataset, "PerformanceScore"),
-        },
+        # {
+        #     "name": "PerformanceScore",
+        #     "type": "category",
+        #     "label": "PerformanceScore",
+        #     "required": True,
+        #     "choices": unique_df(original_dataset, "PerformanceScore"),
+        # },
         {
             "name": "EmpSatisfaction",
             "type": "category",
@@ -205,7 +236,7 @@ def dynamic_form_view(request):
             form_data = {field: form.cleaned_data[field] for field in form.cleaned_data}
             results = process_form_data(form_data)
             # print(f"Form Data: {form_data}")  # Debugging
-            response_message = " ".join(results.values())
+            response_message = " ".join(str(results.values()))
         else:
             response_message = "There were errors in the form. Please correct them."
     else:
