@@ -22,7 +22,7 @@ def dynamic_form_view(request):
     fields_config = [
         {
             "name": "MarriedID",
-            "type": "number",
+            "type": "category",
             "label": "MarriedID",
             "required": True,
             "choices": [0, 1],
@@ -36,16 +36,68 @@ def dynamic_form_view(request):
         },
         {
             "name": "PerformanceScore",
-            "type": "text",
-            "label": "PerformanceScore",
+            "type": "category",
+            "label": "Performance Score",
             "required": True,
+            "choices": ["PIP", "Needs Improvement", "Fully Meets", "Exceeds"],
         },
         {
-            "name": "shit date",
-            "type": "date",
-            "label": "Date",
+            "name": "EmpSatisfaction",
+            "type": "category",
+            "label": "EmpSatisfaction",
             "required": True,
+            "choices": [1, 2, 3, 4],
         },
+        {
+            "name": "SpecialProjectsCount",
+            "type": "number",
+            "label": "SpecialProjectsCount",
+            "required": True,
+            "choices": [],
+        },
+        {
+            "name": "DaysLateLast30",
+            "type": "number",
+            "label": "DaysLateLast30",
+            "required": True,
+            "choices": [],
+        },
+        {
+            "name": "Absences",
+            "type": "number",
+            "label": "Absences",
+            "required": True,
+            "choices": [],
+        },
+        {
+            "name": "Age",
+            "type": "number",
+            "label": "Age",
+            "required": True,
+            "choices": [],
+        },
+        {
+            "name": "Sex_encoded",
+            "type": "category",
+            "label": "Sex_encoded",
+            "required": True,
+            "choices": ["1"],
+        },
+        {
+            "name": "Age",
+            "type": "number",
+            "label": "Age",
+            "required": True,
+            "choices": [],
+        },
+        {
+            "name": "Age",
+            "type": "number",
+            "label": "Age",
+            "required": True,
+            "choices": [],
+        },
+
     ]
 
     class DynamicForm(forms.Form):
@@ -58,13 +110,21 @@ def dynamic_form_view(request):
                 required = field["required"]
                 choices = field.get("choices", None)
 
-                if choices:  # If dropdown suggestions are specified
+                if field_type == "category" and choices:
+                    self.fields[field_name] = forms.ChoiceField(
+                        label=label,
+                        required=required,
+                        choices=[(choice, choice) for choice in choices],
+                        widget=forms.Select,
+                    )
+                elif choices:
                     self.fields[field_name] = forms.CharField(
                         label=label,
                         required=required,
                         widget=forms.TextInput(attrs={
-                            "list": f"options-{field_name}",  # Link to the datalist element
-                            "choices": choices  # Pass the choices to the widget for use in the template
+                            "list": f"options-{field_name}",
+                            "choices": choices,
+                            "autocomplete": "off",
                         })
                     )
                 elif field_type == "text":
@@ -86,7 +146,12 @@ def dynamic_form_view(request):
             form_data = {field: form.cleaned_data[field] for field in form.cleaned_data}
             results = process_form_data(form_data)
             response_message = " ".join(results.values())
+        else:
+            response_message = "There were errors in the form. Please correct them."
     else:
         form = DynamicForm(fields_config)
 
-    return render(request, "dynamic_form.html", {"form": form, "response_message": response_message})
+    return render(request, "dynamic_form.html", {
+        "form": form,
+        "response_message": response_message,
+    })
