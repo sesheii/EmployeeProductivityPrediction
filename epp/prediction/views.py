@@ -1,101 +1,160 @@
 from django.shortcuts import render
 from django import forms
+import pandas as pd
+import os
+from datetime import date
 
+
+def calculate_age(dob):
+    if not isinstance(dob, date):
+        raise ValueError("DOB must be a datetime.date object")
+
+    today = date.today()
+
+    if dob > today:
+        raise ValueError("Date of Birth cannot be in the future")
+
+    age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+    return age
+
+
+def unique_df(df, column):
+    return sorted([i for i in df[f"{column}"].unique()])
+
+original_dataset = pd.read_csv(os.path.join("data/HRDataset_v14.csv"))
 
 def process_form_data(form_data):
     results = {}
     for field_name, value in form_data.items():
-        if field_name == "username":
-            results[field_name] = f"Hello, {value.upper()}!"
-        elif field_name == "age":
-            results[field_name] = f"You are {int(value) + 10} years old in the future."
-        elif field_name == "birth_date":
-            results[field_name] = f"You were born on {value.strftime('%A, %B %d, %Y')}."
-        elif field_name == "shit date":
-            results[field_name] = f"The selected date is {value.isoformat()}."
-        else:
-            results[field_name] = f"Value: {value}"
+        # print(f"Field: {field_name}, Value: {value}, Type: {type(value)}")  # Debugging
+
+        if field_name == "DOB":
+            if value:
+                try:
+                    age = calculate_age(value)
+                    results["Age"] = str(age)
+                except ValueError as e:
+                    results["Age"] = str(e)  # Return the error message
+            else:
+                results["Age"] = "Invalid or missing Date of Birth"
+        elif field_name == "haha":
+            results[field_name] = f"val: {value}"
     return results
 
 
 def dynamic_form_view(request):
     fields_config = [
         {
-            "name": "MarriedID",
+            "name": "DOB",
+            "type": "date",
+            "label": "DateOfBirth",
+            "required": True,
+            "choices": [],
+        },
+        {
+            "name": "Married",
             "type": "category",
             "label": "MarriedID",
             "required": True,
-            "choices": [0, 1],
+            "choices": ["Yes", "No"],
         },
         {
             "name": "Salary",
             "type": "number",
             "label": "Salary",
             "required": True,
-            "choices": [49999, 75000, 99999],
+            "choices": unique_df(original_dataset, "Salary"),
         },
         {
             "name": "PerformanceScore",
             "type": "category",
-            "label": "Performance Score",
+            "label": "PerformanceScore",
             "required": True,
-            "choices": ["PIP", "Needs Improvement", "Fully Meets", "Exceeds"],
+            "choices": unique_df(original_dataset, "PerformanceScore"),
         },
         {
             "name": "EmpSatisfaction",
             "type": "category",
             "label": "EmpSatisfaction",
             "required": True,
-            "choices": [1, 2, 3, 4],
+            "choices": unique_df(original_dataset, "EmpSatisfaction"),
         },
         {
             "name": "SpecialProjectsCount",
             "type": "number",
             "label": "SpecialProjectsCount",
             "required": True,
-            "choices": [],
+            "choices": unique_df(original_dataset, "SpecialProjectsCount"),
         },
         {
             "name": "DaysLateLast30",
             "type": "number",
             "label": "DaysLateLast30",
             "required": True,
-            "choices": [],
+            "choices": unique_df(original_dataset, "DaysLateLast30"),
         },
         {
             "name": "Absences",
             "type": "number",
             "label": "Absences",
             "required": True,
-            "choices": [],
+            "choices": unique_df(original_dataset, "Absences"),
         },
         {
-            "name": "Age",
-            "type": "number",
-            "label": "Age",
+            "name": "Position_encoded", # encode
+            "type": "category",
+            "label": "Position_encoded",
             "required": True,
-            "choices": [],
+            "choices": unique_df(original_dataset, "Position"),
         },
         {
-            "name": "Sex_encoded",
+            "name": "State_encoded", # encode
+            "type": "category",
+            "label": "State_encoded",
+            "required": True,
+            "choices": unique_df(original_dataset, "State"),
+        },
+        {
+            "name": "Sex_encoded", # encode
             "type": "category",
             "label": "Sex_encoded",
             "required": True,
-            "choices": ["1"],
+            "choices": unique_df(original_dataset, "Sex"),
         },
         {
-            "name": "Age",
-            "type": "number",
-            "label": "Age",
+            "name": "RaceDesc_encoded", # encode
+            "type": "category",
+            "label": "RaceDesc_encoded",
             "required": True,
-            "choices": [],
+            "choices": unique_df(original_dataset, "RaceDesc"),
         },
         {
-            "name": "Age",
-            "type": "number",
-            "label": "Age",
+            "name": "Department_encoded", # encode
+            "type": "category",
+            "label": "Department_encoded",
             "required": True,
-            "choices": [],
+            "choices": unique_df(original_dataset, "Department"),
+        },
+        {
+            "name": "RecruitmentSource_encoded", # encode
+            "type": "category",
+            "label": "RecruitmentSource_encoded",
+            "required": True,
+            "choices": unique_df(original_dataset, "RecruitmentSource"),
+        },
+        {
+            "name": "MaritalDesc_encoded", # encode
+            "type": "category",
+            "label": "MaritalDesc_encoded",
+            "required": True,
+            "choices": unique_df(original_dataset, "MaritalDesc"),
+        },
+        {
+            "name": "CitizenDesc_encoded", # encode
+            "type": "category",
+            "label": "CitizenDesc_encoded",
+            "required": True,
+            "choices": unique_df(original_dataset, "CitizenDesc"),
         },
 
     ]
@@ -145,6 +204,7 @@ def dynamic_form_view(request):
         if form.is_valid():
             form_data = {field: form.cleaned_data[field] for field in form.cleaned_data}
             results = process_form_data(form_data)
+            # print(f"Form Data: {form_data}")  # Debugging
             response_message = " ".join(results.values())
         else:
             response_message = "There were errors in the form. Please correct them."
