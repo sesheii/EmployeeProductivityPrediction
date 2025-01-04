@@ -1,3 +1,5 @@
+{% load custom_filters %}
+
 <!doctype html>
 <html lang="en">
     <head>
@@ -8,7 +10,7 @@
     <body>
         <h1>Employee Productivity Prediction</h1>
 
-        <!-- Display error message if any -->
+        <!-- Display error message -->
         {% if error_message %}
         <div style="color: red; font-weight: bold">{{ error_message }}</div>
         {% endif %}
@@ -16,25 +18,46 @@
         <form method="POST">
             {% csrf_token %}
 
-            <!-- Dynamically generate input fields for each feature -->
-            {% for feature in features %}
+            <!-- Numerical Features -->
+            {% for feature in numerical_features %}
             <label for="{{ feature }}">{{ feature|title }}:</label>
             <input
                 type="text"
                 name="{{ feature }}"
                 id="{{ feature }}"
-                value="{{ input_data.feature }}"
+                value="{{ input_data|get_item:feature }}"
                 required
             /><br />
+            {% endfor %}
+
+            <!-- Categorical Features -->
+            {% for feature, categories in categorical_features.items %}
+            <label for="{{ feature }}">{{ feature|title }}:</label>
+            <select name="{{ feature }}" id="{{ feature }}" required>
+                <option value="">Select...</option>
+                {% for category in categories %}
+                <option
+                    value="{{ category }}"
+                    {%
+                    if
+                    input_data|get_item:feature=""
+                    ="category"
+                    %}selected{%
+                    endif
+                    %}
+                >
+                    {{ category }}
+                </option>
+                {% endfor %}</select
+            ><br />
             {% endfor %}
 
             <button type="submit">Predict</button>
         </form>
 
         {% if predictions %}
-        <h2>Prediction Results:</h2>
+        <h2>Predictions:</h2>
         <ul>
-            <!-- Display predictions for each model -->
             {% for model, prediction in predictions.items %}
             <li>{{ model }}: {{ prediction }}</li>
             {% endfor %}
