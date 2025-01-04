@@ -2,5 +2,5 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.prediction_view, name='predict'),
+    path('', views.dynamic_form_view, name='predict'),
 ]
