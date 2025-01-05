@@ -74,6 +74,7 @@ def dynamic_form_view(request):
             "label": "DateOfBirth",
             "required": True,
             "choices": [],
+            "desc": "Дата народження.",
         },
         {
             "name": "LastPerformanceReview_Date",
@@ -81,6 +82,7 @@ def dynamic_form_view(request):
             "label": "LastPerformanceReview_Date",
             "required": True,
             "choices": [],
+            "desc": "Дата останнього проведення оцінки продуктивності.",
         },
         {
             "name": "Married",
@@ -88,6 +90,7 @@ def dynamic_form_view(request):
             "label": "MarriedID",
             "required": True,
             "choices": ["Yes", "No"],
+            "desc": "Ідентифікатор сімейного стану.",
         },
         {
             "name": "Salary",
@@ -95,6 +98,7 @@ def dynamic_form_view(request):
             "label": "Salary",
             "required": True,
             "choices": unique_df(original_dataset, "Salary"),
+            "desc": "Заробітна плата у USD/рік.",
         },
         # {
         #     "name": "PerformanceScore",
@@ -104,11 +108,20 @@ def dynamic_form_view(request):
         #     "choices": unique_df(original_dataset, "PerformanceScore"),
         # },
         {
+            "name": "EngagementSurvey",
+            "type": "text",
+            "label": "EngagementSurvey",
+            "required": True,
+            "choices": unique_df(original_dataset, "EngagementSurvey"),
+            "desc": "Значення від 1 до 5 включно. Результати опитування залученості працівника.",
+        },
+        {
             "name": "EmpSatisfaction",
             "type": "category",
             "label": "EmpSatisfaction",
             "required": True,
             "choices": unique_df(original_dataset, "EmpSatisfaction"),
+            "desc": "Рівень задоволення працівника роботою.",
         },
         {
             "name": "SpecialProjectsCount",
@@ -116,6 +129,7 @@ def dynamic_form_view(request):
             "label": "SpecialProjectsCount",
             "required": True,
             "choices": unique_df(original_dataset, "SpecialProjectsCount"),
+            "desc": "Кількість проєктів, у яких брав участь працівник за останні 6 місяців.",
         },
         {
             "name": "DaysLateLast30",
@@ -123,6 +137,7 @@ def dynamic_form_view(request):
             "label": "DaysLateLast30",
             "required": True,
             "choices": unique_df(original_dataset, "DaysLateLast30"),
+            "desc": "Кількість днів, коли працівник спізнився за останні 30 днів.",
         },
         {
             "name": "Absences",
@@ -130,62 +145,79 @@ def dynamic_form_view(request):
             "label": "Absences",
             "required": True,
             "choices": unique_df(original_dataset, "Absences"),
+            "desc": "Загальна кількість відсутностей працівника.",
         },
         {
             "name": "Position_encoded", # encode
             "type": "category",
-            "label": "Position_encoded",
+            "label": "Position",
             "required": True,
             "choices": unique_df(original_dataset, "Position"),
+            "desc": "Посада працівника.",
         },
         {
             "name": "State_encoded", # encode
             "type": "category",
-            "label": "State_encoded",
+            "label": "State",
             "required": True,
             "choices": unique_df(original_dataset, "State"),
+            "desc": "Штат, де живе людина.",
         },
         {
             "name": "Sex_encoded", # encode
             "type": "category",
-            "label": "Sex_encoded",
+            "label": "Sex",
             "required": True,
             "choices": unique_df(original_dataset, "Sex"),
+            "desc": "Стать працівника.",
         },
         {
             "name": "RaceDesc_encoded", # encode
             "type": "category",
-            "label": "RaceDesc_encoded",
+            "label": "RaceDesc",
             "required": True,
             "choices": unique_df(original_dataset, "RaceDesc"),
+            "desc": "опис раси, до якої людина себе відносить.",
+        },
+        {
+            "name": "ManagerName_encoded", # encode
+            "type": "category",
+            "label": "ManagerName",
+            "required": True,
+            "choices": unique_df(original_dataset, "RaceDesc"),
+            "desc": "Ім'я менеджера, який відповідає за працівника.",
         },
         {
             "name": "Department_encoded", # encode
             "type": "category",
-            "label": "Department_encoded",
+            "label": "Department",
             "required": True,
             "choices": unique_df(original_dataset, "Department"),
+            "desc": "Відділ, у якому працює працівник.",
         },
         {
             "name": "RecruitmentSource_encoded", # encode
             "type": "category",
-            "label": "RecruitmentSource_encoded",
+            "label": "RecruitmentSource",
             "required": True,
             "choices": unique_df(original_dataset, "RecruitmentSource"),
+            "desc": "Джерело, через яке працівник був найнятий.",
         },
         {
             "name": "MaritalDesc_encoded", # encode
             "type": "category",
-            "label": "MaritalDesc_encoded",
+            "label": "MaritalDesc",
             "required": True,
             "choices": unique_df(original_dataset, "MaritalDesc"),
+            "desc": "Сімейний стан працівника.",
         },
         {
             "name": "CitizenDesc_encoded", # encode
             "type": "category",
-            "label": "CitizenDesc_encoded",
+            "label": "CitizenDesc",
             "required": True,
             "choices": unique_df(original_dataset, "CitizenDesc"),
+            "desc": "Позначка про те, чи є особа громадянином або негромадянином, який має право на отримання допомоги.",
         },
 
     ]
@@ -199,13 +231,14 @@ def dynamic_form_view(request):
                 label = field["label"]
                 required = field["required"]
                 choices = field.get("choices", None)
+                desc = field.get("desc", "")
 
                 if field_type == "category" and choices:
                     self.fields[field_name] = forms.ChoiceField(
                         label=label,
                         required=required,
                         choices=[(choice, choice) for choice in choices],
-                        widget=forms.Select,
+                        widget=forms.Select(attrs={"desc": desc}),
                     )
                 elif choices:
                     self.fields[field_name] = forms.CharField(
@@ -215,30 +248,39 @@ def dynamic_form_view(request):
                             "list": f"options-{field_name}",
                             "choices": choices,
                             "autocomplete": "off",
+                            "desc": desc,
                         })
                     )
                 elif field_type == "text":
-                    self.fields[field_name] = forms.CharField(label=label, required=required)
+                    self.fields[field_name] = forms.CharField(
+                        label=label,
+                        required=required,
+                        widget=forms.TextInput(attrs={"desc": desc}),
+                    )
                 elif field_type == "number":
-                    self.fields[field_name] = forms.IntegerField(label=label, required=required)
+                    self.fields[field_name] = forms.IntegerField(
+                        label=label,
+                        required=required,
+                        widget=forms.NumberInput(attrs={"desc": desc}),
+                    )
                 elif field_type == "date":
                     self.fields[field_name] = forms.DateField(
                         label=label,
                         required=required,
-                        widget=forms.DateInput(attrs={"type": "date"})
+                        widget=forms.DateInput(attrs={"type": "date", "desc": desc}),
                     )
+
 
     response_message = None
 
     if request.method == "POST":
-        form = DynamicForm(fields_config, request.POST)
-        if form.is_valid():
-            form_data = {field: form.cleaned_data[field] for field in form.cleaned_data}
-            results = process_form_data(form_data)
-            # print(f"Form Data: {form_data}")  # Debugging
-            response_message = " ".join(str(results.values()))
-        else:
-            response_message = "There were errors in the form. Please correct them."
+            form = DynamicForm(fields_config, request.POST)
+            if form.is_valid():
+                form_data = {field: form.cleaned_data[field] for field in form.cleaned_data}
+                results = process_form_data(form_data)
+                response_message = " ".join(str(results.values()))
+            else:
+                response_message = "There were errors in the form. Please correct them."
     else:
         form = DynamicForm(fields_config)
 
