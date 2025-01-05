@@ -6,12 +6,25 @@ git clone https://github.com/sesheii/EmployeeProductivityPrediction.git
 ```
 ## Запуск
 Перейти всередину отриманої папки, відкрити в ній термінал чи командний рядок, виконати наступні команди по порядку:
+
+### Linux
+
 ```
 python -m venv .venv
-source .venv/bin/activate (примітка: це команда для Linux)
-.\.venv\Scripts\activate (примітка: це команда для Windows)
+source .venv/bin/activate
 pip install -r requirements.txt
 cd epp
 python manage.py runserver
 ```
+
+### Windows
+
+```
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -r requirements.txt
+cd epp
+python manage.py runserver
+```
+
 В результаті виконання команд застосунок запущено, залишається останній крок, щоб побачити його графічний інтерфейс - в адресному полі браузера ввести адресу localhost:8000 . Після цього буде видно інтерфейс застосунку та можна одразу ж з ним взаємодіяти.
