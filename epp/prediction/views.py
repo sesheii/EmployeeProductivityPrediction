@@ -22,7 +22,7 @@ def unique_df(df, column):
     return sorted([i for i in df[f"{column}"].unique()])
 
 original_dataset = pd.read_csv(os.path.join("data/HRDataset_v14.csv"))
-pd.set_option('display.max_columns', None)  
+pd.set_option('display.max_columns', None)
 
 
 def calculate_age(dob, reference_date):
@@ -91,12 +91,12 @@ def process_form_data(form_data):
             else:
                 results["MarriedID"] = 0
 
-        if field_name in ["Salary", "EngagementSurvey", "EmpSatisfaction", "SpecialProjectsCount", "DaysLateLast30", "Absences"]:
+        if field_name in ["Age", "Salary", "EngagementSurvey", "EmpSatisfaction", "SpecialProjectsCount", "DaysLateLast30", "Absences"]:
             results[field_name] = int(value)
 
         if field_name in ["Position", "State", "Sex", "RaceDesc", "ManagerName", "Department", "RecruitmentSource", "MaritalDesc", "CitizenDesc"]:
             results[field_name] = value
-        
+
         # elif field_name not in ["DOB", "LastPerformanceReview_Date"]:
         #     results[field_name] = f"{value}"
 
@@ -105,10 +105,10 @@ def process_form_data(form_data):
     results["EmpID"] = hash_decimal
     # results["PerformanceScore"] = "Exceeds"
     results["PerformanceScore"] = "Fully Meets"
-    
 
-    selected_columns = ["EmpID", "DOB", "LastPerformanceReview_Date", "MarriedID", "Salary", "EngagementSurvey", "EmpSatisfaction", 
-                        "SpecialProjectsCount", "DaysLateLast30", "Absences", "Position", "State", "Sex", "RaceDesc", 
+
+    selected_columns = ["EmpID", "DOB", "LastPerformanceReview_Date", "MarriedID", "Salary", "EngagementSurvey", "EmpSatisfaction",
+                        "SpecialProjectsCount", "DaysLateLast30", "Absences", "Position", "State", "Sex", "RaceDesc",
                         "ManagerName", "Department", "RecruitmentSource", "MaritalDesc", "CitizenDesc", "PerformanceScore"]
     df = original_dataset[selected_columns].copy()
 
@@ -129,7 +129,7 @@ def process_form_data(form_data):
         if i != 'PerformanceScore':
             df[i] = df[i].astype('category')
     col_cat = list(df.select_dtypes(include=['category']).columns)
-    
+
     performance_score_mapping = {
         "PIP": 0,
         "Needs Improvement": 1,
@@ -145,7 +145,7 @@ def process_form_data(form_data):
 
     encoded_record = df_encoded[df_encoded["EmpID"] == hash_decimal].iloc[0]
     encoded_record = pd.DataFrame([encoded_record.drop(["EmpID", "PerformanceScore"])])
-    
+
 
     clf = joblib.load("dump/RandomForestClassifier.pkl")
     expected_features = clf.feature_names_in_
@@ -174,21 +174,29 @@ def process_form_data(form_data):
 
 def dynamic_form_view(request):
     fields_config = [
+        # {
+        #     "name": "DOB",
+        #     "type": "date",
+        #     "label": "DateOfBirth",
+        #     "required": True,
+        #     "choices": [],
+        #     "desc": "Дата народження.",
+        # },
+        # {
+        #     "name": "LastPerformanceReview_Date",
+        #     "type": "date",
+        #     "label": "LastPerformanceReview_Date",
+        #     "required": True,
+        #     "choices": [],
+        #     "desc": "Дата останнього проведення оцінки продуктивності.",
+        # },
         {
-            "name": "DOB",
-            "type": "date",
-            "label": "DateOfBirth",
+            "name": "Age",
+            "type": "number",
+            "label": "Age",
             "required": True,
             "choices": [],
-            "desc": "Дата народження.",
-        },
-        {
-            "name": "LastPerformanceReview_Date",
-            "type": "date",
-            "label": "LastPerformanceReview_Date",
-            "required": True,
-            "choices": [],
-            "desc": "Дата останнього проведення оцінки продуктивності.",
+            "desc": "Вік працівника.",
         },
         {
             "name": "MarriedID",
